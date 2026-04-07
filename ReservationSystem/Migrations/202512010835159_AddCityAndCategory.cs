@@ -1,0 +1,20 @@
+﻿namespace ReservationSystem.Migrations
+{
+    using System;
+    using System.Data.Entity.Migrations;
+    
+    public partial class AddCityAndCategory : DbMigration
+    {
+        public override void Up()
+        {
+            AddColumn("dbo.Events", "City", c => c.String());
+            AddColumn("dbo.Events", "Category", c => c.String());
+        }
+        
+        public override void Down()
+        {
+            DropColumn("dbo.Events", "Category");
+            DropColumn("dbo.Events", "City");
+        }
+    }
+}
