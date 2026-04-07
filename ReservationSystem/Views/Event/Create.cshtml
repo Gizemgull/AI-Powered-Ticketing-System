@@ -1,0 +1,72 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model Event
+@{
+    ViewBag.Title = "Etkinlik Oluştur";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-header">
+    <h2>Yeni Etkinlik Oluştur</h2>
+</div>
+
+@using (Html.BeginForm("Create", "Event", FormMethod.Post, new { enctype = "multipart/form-data", @class = "event-form" }))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "Lütfen hataları düzeltin.", new { @class = "text-danger" })
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Name)
+        @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Date)
+        @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Description, "Açıklama")
+        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 5 })
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Location, "Konum")
+        @Html.TextBoxFor(model => model.Location, new { @class = "form-control" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Price, "Bilet Fiyatı (₺)")
+        @* step="0.50" kuruşlu fiyat girmeyi sağlar, min="0" negatif fiyatı engeller *@
+        <input type="number" name="Price" class="form-control" step="0.50" min="0" required />
+    </div>
+
+
+    @* Şehir Seçimi  *@
+    <div class="form-group">
+        @Html.LabelFor(model => model.City, "Şehir")
+        @Html.DropDownListFor(model => model.City, (IEnumerable<SelectListItem>)ViewBag.CityList, "Şehir Seçiniz...", new { @class = "form-control", required = "required" })
+    </div>
+
+    @* Kategori Seçimi *@
+    <div class="form-group">
+        <label>Kategori</label>
+        <select name="Category" class="form-control" required>
+            <option value="">Kategori Seçiniz...</option>
+            <option value="Konser">Konser</option>
+            <option value="Tiyatro">Tiyatro</option>
+            <option value="Festival">Festival</option>
+            <option value="StandUp">Stand Up</option>
+            
+        </select>
+    </div>
+
+    @* RESİM YÜKLEME ALANI *@
+    <div class="form-group">
+        <label>Etkinlik Görseli</label>
+        <input type="file" name="EventImage" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn-success">Kaydet</button>
+
+
+}

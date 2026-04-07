@@ -1,0 +1,181 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model IEnumerable<Event>
+@{
+    ViewBag.Title = "Etkinlikler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Seçili tarih filtresini al 
+    string currentFilter = Request.QueryString["filter"];
+}
+
+<div class="page-container">
+
+    @*  SOL TARAF  *@
+    <aside class="filter-sidebar">
+
+        @* Form Başlangıcı *@
+        @using (Html.BeginForm("Index", "Home", FormMethod.Get, new { id = "filterForm" }))
+        {
+         
+            <input type="hidden" name="city" value="@Request.QueryString["city"]" />
+            <input type="hidden" name="search" value="@Request.QueryString["search"]" />
+            <input type="hidden" name="category" value="@Request.QueryString["category"]" />
+
+           
+            <input type="hidden" name="filter" id="dateFilterInput" value="@currentFilter" />
+
+            @*  TARİH FİLTRESİ *@
+            <div class="filter-group">
+                <h3>
+                    Tarih
+                    @* Temizle  *@
+                    <a href="@Url.Action("Index", "Home", new { city = Request.QueryString["city"], category = Request.QueryString["category"] })"
+                       style="font-size:12px; color:#007bff; text-decoration:none;">(Temizle)</a>
+                </h3>
+                <div>
+                    
+
+                    <a href="javascript:void(0);" onclick="applyDateFilter('Bugun')"
+                       class="filter-option-button @(currentFilter == "Bugun" ? "active" : "")">
+                        Bugün
+                    </a>
+
+                    <a href="javascript:void(0);" onclick="applyDateFilter('Yarin')"
+                       class="filter-option-button @(currentFilter == "Yarin" ? "active" : "")">
+                        Yarın
+                    </a>
+
+                    <a href="javascript:void(0);" onclick="applyDateFilter('BuHafta')"
+                       class="filter-option-button @(currentFilter == "BuHafta" ? "active" : "")">
+                        Bu Hafta
+                    </a>
+                </div>
+            </div>
+
+            @*  FİYAT ARALIĞI *@
+            <div class="filter-group">
+                <h3>Fiyat Aralığı</h3>
+                <div class="price-slider-group">
+
+                    @* Slider Input *@
+                    <input type="range" name="maxPrice" id="priceSlider"
+                           min="0" max="5000" step="50"
+                           value="@(Request.QueryString["maxPrice"] ?? "5000")"
+                           class="styled-slider"
+                           oninput="document.getElementById('currentPriceLabel').innerText = this.value + ' ₺'"
+                           onchange="document.getElementById('filterForm').submit();" />
+
+                    @* Alt Bilgi  *@
+                    <div class="price-labels" style="display: flex; justify-content: space-between; margin-top: 10px; font-weight: 500;">
+                        <span style="color: #999;">0 ₺</span>
+                        <span id="currentPriceLabel" style="color: #333; font-weight: bold;">
+                            @(Request.QueryString["maxPrice"] ?? "5000") ₺
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+           
+            <div class="filter-group">
+                <h3>Diğer Filtreler</h3>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="yakindaSatis" name="yakinda" value="true"
+                           @(Request.QueryString["yakinda"] == "true" ? "checked" : "")
+                           onchange="document.getElementById('filterForm').submit();" />
+                    <label for="yakindaSatis">Yakında Satışta</label>
+                </div>
+            </div>
+        }
+    </aside>
+
+    
+    @* SAĞ TARAF *@
+    <main class="main-content">
+
+        @* AKILLI BAŞLIK MANTIĞI *@
+        <div style="margin-bottom: 20px;">
+            @{
+                string pageTitle = "Tüm Etkinlikler"; 
+                string searchTerm = Request.QueryString["search"];
+                string selectedCategory = Request.QueryString["category"];
+                string selectedCity = ViewBag.CurrentCity as string;
+
+                // Arama yapılmışsa
+                if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    pageTitle = $"'{searchTerm}' için Arama Sonuçları";
+                }
+                // Kategori seçilmişse 
+                else if (!string.IsNullOrEmpty(selectedCategory) )
+                {
+                    pageTitle = $"{selectedCategory} Etkinlikleri";
+                }
+                // 3. Öncelik: Şehir seçilmişse
+                else if (!string.IsNullOrEmpty(selectedCity) && selectedCity != "Konum Seç")
+                {
+                    pageTitle = $"{selectedCity} Etkinlikleri";
+                }
+            }
+
+            <h2>@pageTitle</h2>
+        </div>
+
+        @*SONUÇ BULUNAMAZSA UYARI VER*@
+        @if (!Model.Any())
+        {
+            <div style="padding: 20px; background-color: #fff; border-radius: 8px; text-align: center; color: #666;">
+                <p>Aradığınız kriterlere uygun etkinlik bulunamadı.</p>
+                <a href="@Url.Action("Index", "Home")" style="color: #00c062; font-weight: bold;">Tüm Etkinlikleri Göster</a>
+            </div>
+        }
+        else
+        {
+    <div class="event-grid">
+        @foreach (var item in Model)
+        {
+            <div class="event-card">
+                <div class="event-card-image">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@Url.Content(item.ImageUrl)" alt="@item.Name" />
+                    }
+                </div>
+
+                <div class="event-card-content">
+                    <h3>@Html.DisplayFor(modelItem => item.Name)</h3>
+                    <p class="location">@Html.DisplayFor(modelItem => item.Location)</p>
+                    <p class="date">@item.Date.ToString("dd MMMM yyyy")</p>
+
+                    
+                    <p class="price" style="color: #8e44ad; font-weight: bold; font-size: 1.2rem; margin-top: 10px;">
+                        @if (item.Price == 0)
+                        {
+                            <span style="color: #8e44ad;">Ücretsiz</span> @* Burası da Mor oldu *@
+                        }
+                        else
+                        {
+                            @item.Price.ToString("N0") <span>₺</span>
+                        }
+                    </p>
+
+                    <a href="@Url.Action("Details", "Home", new { id = item.EventID })" class="btn-details">
+                        Detayları Gör
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+        }
+    </main>
+</div>
+
+@*Tarih Filtresini Çalıştıran  *@
+<script>
+    function applyDateFilter(filterValue) {
+        // (Bugun, Yarin, BuHafta)
+        document.getElementById('dateFilterInput').value = filterValue;
+
+        //öylece Şehir, Fiyat, Kategori bilgileriyle birlikte gider
+        document.getElementById('filterForm').submit();
+    }
+</script>

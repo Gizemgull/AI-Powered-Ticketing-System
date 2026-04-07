@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - BiletBul</title>
+
+   
+    <link href="@Url.Content("~/Content/Site.css?v=2.0")" rel="stylesheet" type="text/css" />
+
+    
+    <style>
+        html, body {
+            overflow-x: hidden; /* Sağa taşmayı zorla engeller */
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* RenderBody'nin altı boş kalmasın diye min-height */
+        .main-container {
+            min-height: 80vh;
+            padding-bottom: 50px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+
+        @* HEADER *@
+        <header class="main-header">
+            <div class="header-left">
+                <a href="@Url.Action("Index", "Home")" class="header-brand" style="display: flex; align-items: center;">
+                    <img src="@Url.Content("~/img/ticket2.png")" alt="Logo" style="height: 80px; margin-right: 10px; border-radius: 5px;" />
+                    BiletBul
+                </a>
+
+                @* Arama Çubuğu *@
+                <div class="search-bar">
+                    @using (Html.BeginForm("Index", "Home", FormMethod.Get))
+                    {
+                        if (ViewBag.CurrentCity != null && (string)ViewBag.CurrentCity != "Konum Seç")
+                        {
+                            <input type="hidden" name="city" value="@ViewBag.CurrentCity" />
+                        }
+
+                        <input type="text" name="search" placeholder="Etkinlik, mekan, sanatçı ara..."
+                               value="@Request.QueryString["search"]" autocomplete="off" />
+                    }
+                </div>
+            </div>
+
+           @* <div class="header-links">
+                <a href="@Url.Action("Login", "Admin")">
+                    <span>🔒</span> Admin Girişi
+                </a>
+            </div>*@
+        </header>
+
+        @* Kategoriler Solda, Şehir Sağda *@
+        <nav class="category-nav">
+            <div class="category-list">
+                <div class="category-item"><a href="@Url.Action("Index", "Home", new { category="Konser" })">KONSER</a></div>
+                <div class="category-item"><a href="@Url.Action("Index", "Home", new { category="Tiyatro" })">TİYATRO</a></div>
+                <div class="category-item"><a href="@Url.Action("Index", "Home", new { category="Festival" })">FESTİVAL</a></div>
+                <div class="category-item"><a href="@Url.Action("Index", "Home", new { category="StandUp" })">STAND UP</a></div>
+            </div>
+
+            @* Şehir Butonu *@
+            <div class="city-selector" onclick="openCityModal()">
+                <span class="city-icon">📍</span>
+                <span>@(ViewBag.CurrentCity == "Konum Seç" || ViewBag.CurrentCity == null ? "KONUM SEÇ" : ViewBag.CurrentCity)</span>
+                <span>▼</span>
+            </div>
+        </nav>
+
+       
+        <div class="container main-container">
+            @RenderBody()
+        </div>
+
+    </div>
+
+    @* MODAL  *@
+    <div id="cityModal" class="city-modal">
+        <div class="city-modal-content">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:center;">
+                <h3 style="margin:0;">Şehir Seç</h3>
+                <span onclick="closeCityModal()" style="cursor:pointer; font-size:24px; font-weight:bold;">&times;</span>
+            </div>
+            <input type="text" id="citySearchInput" onkeyup="filterCities()" placeholder="Şehir ara..." style="width:100%; padding:10px; margin-bottom:10px; border:1px solid #ddd; border-radius:5px;">
+            <ul id="cityList" class="city-list" style="max-height:300px; overflow-y:auto;"></ul>
+        </div>
+    </div>
+
+    @* Script *@
+    <script>
+        // Modal Açma/Kapama
+        function openCityModal() { document.getElementById('cityModal').style.display = 'flex'; }
+        function closeCityModal() { document.getElementById('cityModal').style.display = 'none'; }
+
+        // Şehir Listesi
+        const cities = ["Adana", "Adıyaman", "Afyonkarahisar", "Ağrı", "Aksaray", "Amasya", "Ankara", "Antalya", "Ardahan", "Artvin", "Aydın", "Balıkesir", "Bartın", "Batman", "Bayburt", "Bilecik", "Bingöl", "Bitlis", "Bolu", "Burdur", "Bursa", "Çanakkale", "Çankırı", "Çorum", "Denizli", "Diyarbakır", "Düzce", "Edirne", "Elazığ", "Erzincan", "Erzurum", "Eskişehir", "Gaziantep", "Giresun", "Gümüşhane", "Hakkari", "Hatay", "Iğdır", "Isparta", "İstanbul", "İzmir", "Kahramanmaraş", "Karabük", "Karaman", "Kars", "Kastamonu", "Kayseri", "Kırıkkale", "Kırklareli", "Kırşehir", "Kilis", "Kocaeli", "Konya", "Kütahya", "Malatya", "Manisa", "Mardin", "Mersin", "Muğla", "Muş", "Nevşehir", "Niğde", "Ordu", "Osmaniye", "Rize", "Sakarya", "Samsun", "Siirt", "Sinop", "Sivas", "Şanlıurfa", "Şırnak", "Tekirdağ", "Tokat", "Trabzon", "Tunceli", "Uşak", "Van", "Yalova", "Yozgat", "Zonguldak"];
+
+        window.onload = function() { populateList(cities); };
+
+        function populateList(data) {
+            const list = document.getElementById("cityList");
+            const baseUrl = '@Url.Action("Index", "Home")';
+            list.innerHTML = `<li><a href="${baseUrl}?city=" style="color:red; font-weight:bold;">Tüm Şehirler</a></li>` +
+                data.map(c => `<li><a href="${baseUrl}?city=${c}">${c}</a></li>`).join('');
+        }
+
+        function filterCities() {
+            const input = document.getElementById("citySearchInput").value.toLocaleUpperCase('tr-TR');
+            const filtered = cities.filter(c => c.toLocaleUpperCase('tr-TR').includes(input));
+            populateList(filtered);
+        }
+
+        // Dışarı tıklayınca kapat
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('cityModal')) closeCityModal();
+        }
+    </script>
+
+    @* FOOTER *@
+    <footer class="main-footer">
+        <div class="footer-container">
+            @* Logo / Proje İsmi *@
+            <div class="footer-left">
+                <a href="@Url.Action("Index", "Home")" class="footer-brand" style="color: #8e44ad; display: flex; align-items: center; text-decoration: none;">
+                    <img src="@Url.Content("~/img/ticket2.png")" alt="Logo" style="height: 80px; margin-right: 10px; border-radius: 4px;" />
+                    BiletBul
+                </a>
+            </div>
+
+            @* Linkler *@
+        <div class="footer-links ">
+            <a href="@Url.Action("About", "Home")">HAKKIMIZDA</a>
+            <a href="@Url.Action("Contact", "Home")">İLETİŞİM</a>
+            @* <a href="@Url.Action("Login", "Admin")">YÖNETİCİ GİRİŞİ</a>*@
+        </div>
+        </div>
+
+        @* Alt Çizgi ve Telif *@
+        <div class="footer-bottom">
+            &copy; @DateTime.Now.Year BiletBul - Tüm Hakları Saklıdır.
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,112 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model IEnumerable<Event>
+@{
+    ViewBag.Title = "Etkinlik Listesi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    
+    .btn-action {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 4px;
+        text-decoration: none !important; 
+        font-weight: bold;
+        font-size: 13px;
+        color: white !important; 
+        transition: all 0.3s;
+        margin-right: 5px;
+    }
+
+   
+    .btn-edit {
+        background-color: #f39c12;
+    }
+
+        .btn-edit:hover {
+            background-color: #d35400; 
+        }
+
+    .btn-delete {
+        background-color: #e74c3c;
+    }
+
+        .btn-delete:hover {
+            background-color: #c0392b; 
+        }
+
+    .btn-primary {
+        background-color: #8e44ad;
+        color: white !important;
+        padding: 10px 20px;
+        text-decoration: none;
+        border-radius: 5px;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+        .btn-primary:hover {
+            background-color: #732d91;
+        }
+</style>
+
+<div class="admin-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2>Etkinlik Yönetimi</h2>
+    <a href="@Url.Action("Create")" class="btn-primary">
+        + Yeni Etkinlik Ekle
+    </a>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Adı</th>
+            <th>Tarih</th>
+            <th>Aktif mi?</th>
+            <th>Fiyat</th>
+            <th style="width: 200px;">İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                <td>@item.Date.ToString("dd MMM yyyy HH:mm")</td>
+
+                <td>
+                    @if (item.IsActive)
+                    {
+                        <span style="color:green; font-weight:bold;">✅ Evet</span>
+                    }
+                    else
+                    {
+                        <span style="color:red; font-weight:bold;">❌ Hayır</span>
+                    }
+                </td>
+
+                <td>
+                    @if (item.Price == 0)
+                    {
+                        <span style="color:green; font-weight:bold;">Ücretsiz</span>
+                    }
+                    else
+                    {
+                        @item.Price.ToString("N2") <span>₺</span>
+                    }
+                </td>
+
+                <td style="white-space: nowrap;">
+                    <a href="@Url.Action("Edit", "Event", new { id = item.EventID })" class="btn-action btn-edit">
+                        ✏️ Düzenle
+                    </a>
+
+                    <a href="@Url.Action("Delete", "Event", new { id = item.EventID })" class="btn-action btn-delete">
+                        🗑️ Sil
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

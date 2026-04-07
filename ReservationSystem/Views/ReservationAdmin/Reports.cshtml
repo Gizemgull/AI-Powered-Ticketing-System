@@ -1,0 +1,103 @@
+﻿@model IEnumerable<ReservationSystem.Models.Sınıflar.Event>
+@{
+    ViewBag.Title = "Rapor Merkezi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="reports-container">
+    <div class="reports-header">
+        <h2 style="color: #8e44ad;">📄 Rapor Merkezi</h2>
+        <p style="color: #666;">Aşağıdaki listeden dilediğiniz etkinliğin "Katılımcı Listesini" (Guest List) PDF olarak alabilir veya yazdırabilirsiniz.</p>
+    </div>
+
+    <div class="report-list-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Etkinlik Adı</th>
+                    <th>Tarih</th>
+                    <th>Konum</th>
+                    <th style="text-align:center;">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td style="font-weight:bold; color:#333;">@item.Name</td>
+                        <td>@item.Date.ToString("dd MMMM yyyy HH:mm")</td>
+                        <td>@item.Location</td>
+                        <td style="text-align:center;">
+                            <a href="@Url.Action("GuestList", "ReservationAdmin", new { eventId = item.EventID })"
+                               target="_blank" class="btn-report">
+                                🖨️ Listeyi Yazdır
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .reports-container {
+        padding: 20px;
+    }
+
+    .reports-header {
+        margin-bottom: 20px;
+        border-bottom: 2px solid #ddd;
+        padding-bottom: 15px;
+    }
+
+    .report-list-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        padding: 20px;
+        border-top: 5px solid #8e44ad;
+    }
+
+    
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            color: #8e44ad;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+        }
+
+        .data-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            color: #555;
+        }
+
+        .data-table tr:hover {
+            background-color: #fcfcfc;
+        }
+
+    .btn-report {
+        background-color: #333;
+        color: #fff;
+        padding: 8px 15px;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+
+        .btn-report:hover {
+            background-color: #8e44ad; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(142, 68, 173, 0.3);
+        }
+</style>

@@ -1,0 +1,193 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model Event
+@{
+    ViewBag.Title = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var comments = ViewBag.Comments as IEnumerable<Comment>;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+@* MESAJLAR *@
+@if (ViewBag.Message != null)
+{
+    <div style="margin-bottom: 20px;">
+        @if (ViewBag.Message == "reservation-success")
+        {
+            <div class="alert alert-success">✅ Rezervasyonunuz başarıyla alındı! </div>
+        }
+        else if (ViewBag.Message == "comment-success")
+        {
+            <div class="alert alert-success">✅ Yorumunuz başarıyla kaydedildi!</div>
+        }
+        else if (ViewBag.Message == "no-reservation")
+        {
+            <div class="alert alert-danger">
+                ⛔ <strong>Hata:</strong> Yorum yapabilmek için önce bu etkinliğe, girdiğiniz e-posta adresiyle rezervasyon yapmanız gerekmektedir.
+            </div>
+        }
+        else if (ViewBag.Message.Contains("fail"))
+        {
+            <div class="alert alert-danger">❌ Bir hata oluştu. Lütfen alanları kontrol edin.</div>
+        }
+    </div>
+}
+
+<div class="detail-page-layout">
+
+    @* --- SOL KISIM --- *@
+    <div class="detail-main-content">
+        <h3 style="margin-top:0; color:darkblue">@Model.Name</h3>
+        <br />
+        <div class="detail-event-image">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Url.Content(Model.ImageUrl)" alt="@Model.Name" />
+            }
+        </div>
+
+        <div class="detail-event-description">
+
+            <div style="color:#555;">@Html.Raw(Model.Description)</div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin:30px 0;" />
+
+        @* YORUM FORMU *@
+        <div class="form-section">
+            <h4>Yorum Bırakın</h4>
+            @using (Html.BeginForm("AddComment", "Comment", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.EventID)
+
+                <div class="form-group">
+                    <label>Adınız Soyadınız</label>
+                    <input type="text" name="AuthorName" required class="form-control-custom" placeholder="İsminiz" />
+                </div>
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" name="Email" required class="form-control-custom" placeholder="Mail Adresiniz" />
+                </div>
+                <div class="form-group">
+                    <label>Yorumunuz</label>
+                    <textarea name="Text" required class="form-control-custom" style="min-height:100px;"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Yorumu Gönder</button>
+            }
+        </div>
+
+        @* YORUM LİSTESİ *@
+        <div class="comment-list">
+            <h4>Yapılan Yorumlar</h4>
+            @if (comments != null && comments.Any())
+            {
+                foreach (var comment in comments)
+                {
+                    <div class="comment-item">
+                        <strong style="display:block; color:#333; margin-bottom:5px;">@comment.AuthorName</strong>
+                        <p>@comment.Text</p>
+                        <small style="color:#999">@comment.CommentDate.ToString("dd.MM.yyyy HH:mm")</small>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    @* --- SAĞ KISIM --- *@
+    <aside class="detail-sidebar">
+        <div class="info-box">
+            <h3>@Model.Name</h3>
+            <p>📅 @Model.Date.ToString("dd MMMM yyyy HH:mm")</p>
+            <p>📍 @Model.Location</p>
+            <p>🏙️ @Model.City</p>
+            <p style="margin-top: 15px; font-size: 1.3rem; color: #8e44ad; font-weight: bold;">
+                🎟️
+                @if (Model.Price == 0)
+                {<span>Ücretsiz</span> }
+                else
+                { @Model.Price.ToString("N2") <span>₺</span>}
+            </p>
+        </div>
+
+        <div class="info-box">
+            <h3>Hemen Yer Ayırt</h3>
+            @* Form ve Input ID'leri Doğru *@
+            @using (Html.BeginForm("Create", "Reservation", FormMethod.Post, new { id = "reservationForm" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.EventID)
+
+                <div class="form-group">
+                    <label>Ad Soyad</label>
+                    <input type="text" name="FullName" id="InputFullName" required class="form-control-custom" placeholder="Adınız Soyadınız" />
+                </div>
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" name="Email" id="InputEmail" required class="form-control-custom" placeholder="Mail Adresiniz" />
+                </div>
+
+                @* Buton type="button" ve onclick var *@
+                <button type="button" class="btn-submit" style="width:100%" onclick="openConfirmationModal()">Rezervasyon Yap</button>
+            }
+        </div>
+    </aside>
+</div>
+
+@* MODAL KODLARI*@
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #8e44ad; color: white;">
+                <h5 class="modal-title" id="confirmModalLabel">⚠️ Rezervasyon Onayı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <p>Aşağıdaki bilgilerle rezervasyon oluşturulacaktır. Onaylıyor musunuz?</p>
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 5px solid #8e44ad;">
+                    <p style="margin:0;"><strong>Ad Soyad:</strong> <span id="modalFullNameText" style="color:#333"></span></p>
+                    <p style="margin:0;"><strong>E-Posta:</strong> <span id="modalEmailText" style="color:#333"></span></p>
+                </div>
+                <br />
+                <small style="color: #7f8c8d;">* Onayladığınızda e-posta adresinize bilet detayları gönderilecektir.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-success" style="background-color: #8e44ad; border-color: #8e44ad;" onclick="submitRealForm()">Evet, Onaylıyorum</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function openConfirmationModal() {
+        // 1. Verileri Al
+        var fullName = document.getElementById("InputFullName").value;
+        var email = document.getElementById("InputEmail").value;
+
+        // 2. Kontrol Et
+        if (fullName.trim() === "" || email.trim() === "") {
+            alert("Lütfen Ad Soyad ve E-Posta alanlarını doldurunuz.");
+            return;
+        }
+
+        // 3. Modala Yaz
+        document.getElementById("modalFullNameText").innerText = fullName;
+        document.getElementById("modalEmailText").innerText = email;
+
+        // 4. Modalı Aç 
+        var myModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+        myModal.show();
+    }
+
+    function submitRealForm() {
+        // 5. Formu Gönder
+        document.getElementById("reservationForm").submit();
+    }
+</script>

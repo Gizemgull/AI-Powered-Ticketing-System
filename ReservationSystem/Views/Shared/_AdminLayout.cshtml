@@ -1,0 +1,52 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Yönetim Paneli</title>
+
+    
+    <link href="@Url.Content("~/Content/Admin.css")" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div class="admin-wrapper">
+        <div class="admin-sidebar">
+            <ul>
+                <li><a href="@Url.Action("Index", "Admin")">Dashboard</a></li>
+                <li><a href="@Url.Action("Index", "Event")">Etkinlikler</a></li>
+
+
+                @* Rezervasyon Listesi *@
+                <li><a href="@Url.Action("Index", "ReservationAdmin")">Rezervasyonlar</a></li>
+
+                @* Yorum Listesi *@
+                <li><a href="@Url.Action("Index", "CommentAdmin")">Yorumlar</a></li>
+
+                @* --------------------------- *@
+                <li>
+                    <a href="@Url.Action("Index", "ContactAdmin")">
+                        <span class="icon">📩</span> Mesajlar
+                    </a>
+                </li>
+                <li>
+                    <a href="@Url.Action("Reports", "ReservationAdmin")">
+                        <span class="icon">📄</span> Raporlar
+                    </a>
+                </li>
+
+
+                <li>
+                    <a href="@Url.Action("Index", "Home")" target="_blank" style="background-color: #28a745; color: white; font-weight: bold;">
+                        Siteye Git ➜
+                    </a>
+                </li>
+
+                <li><a href="@Url.Action("Logout", "Admin")">Çıkış Yap</a></li>
+            </ul>
+        </div>
+        <div class="admin-content">
+            @RenderBody() 
+        </div>
+    </div>
+</body>
+</html>

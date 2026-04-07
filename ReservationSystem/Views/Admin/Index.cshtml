@@ -1,0 +1,321 @@
+﻿@model ReservationSystem.Models.DashboardViewModel
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="dashboard-wrapper">
+    <h2 style="color: #8e44ad; border-bottom: 2px solid #8e44ad; padding-bottom: 10px; margin-bottom: 30px;">
+        Yönetim Paneli
+    </h2>
+
+    @* İSTATİSTİK KARTLARI *@
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">@Model.TotalEvents</div>
+            <div class="stat-label">ETKİNLİK</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@Model.TotalReservations</div>
+            <div class="stat-label">REZERVASYON</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@Model.TotalComments</div>
+            <div class="stat-label">YORUM</div>
+        </div>
+        <div class="stat-card" style="border-bottom-color: #28a745;">
+            <div class="stat-number" style="color: #28a745;">
+                %@(Model.TotalComments > 0 ? (Model.PositiveCommentCount * 100 / Model.TotalComments) : 0)
+            </div>
+            <div class="stat-label">MEMNUNİYET</div>
+        </div>
+    </div>
+
+    @* GRAFİKLER *@
+    <div class="charts-column">
+
+        <div class="chart-box">
+            <h3>Yapay Zeka Analizi (Genel Duygu Durumu)</h3>
+            <div class="canvas-container">
+                <canvas id="sentimentChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-box" style="margin-top: 30px; height: auto; min-height: 450px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #eee; padding-bottom:15px; margin-bottom:20px;">
+                <h3 style="border:none; margin:0;">🔍 Etkinlik Bazlı Duygu Analizi</h3>
+                <select id="eventSelector" onchange="loadEventChart()" style="padding: 10px; border-radius: 5px; border: 1px solid #ddd; outline: none; font-size: 14px; width: 250px;">
+                    <option value="0">Bir Etkinlik Seçin...</option>
+                    @foreach (var ev in Model.AllEvents)
+                    {
+                        <option value="@ev.EventID">@ev.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="canvas-container" style="height: 300px;">
+                <canvas id="detailChart"></canvas>
+                <p id="noDataMsg" style="text-align:center; color:#999; margin-top:50px; display:none;">Bu etkinlik için henüz yorum yapılmamış.</p>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <h3>En Popüler 5 Etkinlik</h3>
+            <div class="canvas-container">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    @* SON REZERVASYONLAR TABLOSU *@
+    <div class="table-section">
+        <h3 style="color: #8e44ad;">Son Gelen Rezervasyonlar</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Etkinlik</th>
+                        <th>Kişi</th>
+                        <th>Tarih</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LastReservations)
+                    {
+                        <tr>
+                            <td>@(item.Event != null ? item.Event.Name : "Silinmiş Etkinlik")</td>
+                            <td>@item.FullName</td>
+                            <td>@item.ReservationDate.ToString("dd.MM HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- YARDIMCI FONKSİYON: YÜZDE HESAPLAYAN TOOLTIP ---
+    // Bu ayarı her iki grafikte de kullanacağız, kod tekrarını önledik.
+    var percentageTooltipOptions = {
+        callbacks: {
+            label: function(context) {
+                var label = context.label || '';
+                var value = context.raw || 0;
+
+                // Toplam veriyi bul
+                var total = context.chart._metasets[context.datasetIndex].total;
+
+                // Yüzdeyi hesapla
+                var percentage = Math.round((value / total) * 100) + '%';
+
+                // İki satır döndür: [Satır 1, Satır 2]
+                return [label + ': ' + value + ' Adet', 'Oran: ' + percentage];
+            }
+        }
+    };
+
+    // --- 1. PASTA GRAFİĞİ (GENEL DUYGU) ---
+    var ctxPie = document.getElementById('sentimentChart').getContext('2d');
+    new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pozitif', 'Negatif', 'Nötr'],
+            datasets: [{
+                data: [@Model.PositiveCommentCount, @Model.NegativeCommentCount, @Model.NeutralCommentCount],
+                backgroundColor: ['#2ecc71', '#e74c3c', '#95a5a6'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: percentageTooltipOptions // Özel tooltip ayarını buraya verdik
+            }
+        }
+    });
+
+    // --- 2. SÜTUN GRAFİĞİ (POPÜLER ETKİNLİKLER) ---
+    var eventNames = @Html.Raw(Json.Encode(Model.TopEventNames));
+    var eventCounts = @Html.Raw(Json.Encode(Model.TopEventCounts));
+
+    var ctxBar = document.getElementById('barChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: eventNames,
+            datasets: [{
+                label: 'Rezervasyon Sayısı',
+                data: eventCounts,
+                backgroundColor: '#8e44ad',
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+
+    // --- 3. DETAYLI GRAFİK (AJAX) ---
+    let detailChartInstance = null;
+
+    function loadEventChart() {
+        var eventId = document.getElementById("eventSelector").value;
+        var msg = document.getElementById("noDataMsg");
+        var canvas = document.getElementById("detailChart");
+
+        if (eventId == "0") return;
+
+        fetch('/Admin/GetEventStats?id=' + eventId, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+
+                if (detailChartInstance) {
+                    detailChartInstance.destroy();
+                }
+
+                if (data.pos === 0 && data.neg === 0 && data.neu === 0) {
+                    canvas.style.display = 'none';
+                    msg.style.display = 'block';
+                    return;
+                } else {
+                    canvas.style.display = 'block';
+                    msg.style.display = 'none';
+                }
+
+                var ctxDetail = canvas.getContext('2d');
+                detailChartInstance = new Chart(ctxDetail, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pozitif', 'Negatif', 'Nötr'],
+                        datasets: [{
+                            data: [data.pos, data.neg, data.neu],
+                            backgroundColor: ['#2ecc71', '#e74c3c', '#95a5a6'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right' },
+                            title: { display: true, text: 'Seçilen Etkinliğin Yorum Dağılımı' },
+                            tooltip: percentageTooltipOptions // Buraya da ekledik
+                        }
+                    }
+                });
+            })
+            .catch(err => console.error("Hata:", err));
+    }
+</script>
+
+<style>
+    .dashboard-wrapper {
+        width: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        text-align: center;
+        border-bottom: 5px solid #8e44ad;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #333;
+    }
+
+    .stat-label {
+        color: #777;
+        font-size: 0.8rem;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .charts-column {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .chart-box {
+        width: 100%;
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        height: 350px;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    .canvas-container {
+        flex-grow: 1;
+        position: relative;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    h3 {
+        margin-top: 0;
+        color: #555;
+        font-size: 1.1rem;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .table-section {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        box-sizing: border-box;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 500px;
+    }
+
+        .data-table th, .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+
+        .data-table th {
+            background-color: #f9f9f9;
+            color: #8e44ad;
+        }
+</style>

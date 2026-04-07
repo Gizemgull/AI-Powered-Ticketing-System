@@ -1,0 +1,41 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model IEnumerable<Comment>
+@{ ViewBag.Title = "Yorumlar"; Layout = "~/Views/Shared/_AdminLayout.cshtml"; }
+
+<div class="admin-header"><h2>Yorumlar ve Analizler</h2></div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Etkinlik</th>
+            <th>Yazar (Email)</th>
+            <th style="width:40%">Yorum</th>
+            <th>Analiz</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Event.Name</td>
+                <td><strong>@item.AuthorName</strong><br /><small>@item.Email</small></td>
+                <td>@item.Text</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.Sentiment))
+                    {
+                        <span class="sentiment-label sentiment-@item.Sentiment">@item.Sentiment</span>
+                    }
+                </td>
+                <td>
+                    @using (Html.BeginForm("Delete", "CommentAdmin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.CommentID" />
+                        <button class="btn-delete-sm" onclick="return confirm('Silinsin mi?')">Sil</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

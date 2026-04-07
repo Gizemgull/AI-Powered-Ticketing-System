@@ -1,0 +1,104 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model Event
+
+@{
+    ViewBag.Title = "Etkinlik Düzenle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="admin-header">
+    <h2>Etkinliği Düzenle</h2>
+</div>
+
+@* Resim yükleyebilmek için 'enctype' eklendi *@
+@using (Html.BeginForm("Edit", "Event", FormMethod.Post, new { enctype = "multipart/form-data", @class = "event-form" }))
+{
+    @Html.AntiForgeryToken()
+
+    @* Hataları göster *@
+    @Html.ValidationSummary(true, "Lütfen hataları düzeltin.", new { @class = "text-danger" })
+
+    @* Güncelleme işlemi için ID'yi ve eski resim yolunu saklıyoruz *@
+    @Html.HiddenFor(model => model.EventID)
+    @Html.HiddenFor(model => model.ImageUrl)
+
+    @* Etkinlik Adı  *@
+    <div class="form-group">
+        @Html.LabelFor(model => model.Name, "Etkinlik Adı")
+        @Html.TextBoxFor(model => model.Name, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+    </div>
+
+    @* Tarih ve Saat  *@
+    <div class="form-group">
+        @Html.LabelFor(model => model.Date, "Tarih ve Saat")
+        @* datetime-local inputu için formatın {0:yyyy-MM-ddTHH:mm} olması zorunludur *@
+        @Html.TextBoxFor(model => model.Date, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+        @Html.ValidationMessageFor(model => model.Date, "", new { @class = "text-danger" })
+    </div>
+
+    @*  Açıklama*@
+    <div class="form-group">
+        @Html.LabelFor(model => model.Description, "Açıklama")
+        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = 5 })
+        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+    </div>
+
+    @*  Konum  *@
+    <div class="form-group">
+        @Html.LabelFor(model => model.Location, "Konum")
+        @Html.TextBoxFor(model => model.Location, new { @class = "form-control" })
+        @Html.ValidationMessageFor(model => model.Location, "", new { @class = "text-danger" })
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.Price, "Bilet Fiyatı (₺)")
+        @* Mevcut fiyatı kutuya doldurarak (value) getiriyoruz *@
+        <input type="number" name="Price" class="form-control" step="0.50" min="0" value="@Model.Price" required />
+    </div>
+
+
+    @* Şehir Seçimi  *@
+    <div class="form-group">
+        @Html.LabelFor(model => model.City, "Şehir")
+        @Html.DropDownListFor(model => model.City, (IEnumerable<SelectListItem>)ViewBag.CityList, "Şehir Seçiniz...", new { @class = "form-control", required = "required" })
+    </div>
+
+    @* Kategori Seçimi *@
+    <div class="form-group">
+        <label>Kategori</label>
+        <select name="Category" class="form-control" required>
+            <option value="">Kategori Seçiniz...</option>
+            <option value="Konser" @(Model.Category == "Konser" ? "selected" : "")>Konser</option>
+            <option value="Tiyatro" @(Model.Category == "Tiyatro" ? "selected" : "")>Tiyatro</option>
+            <option value="Festival" @(Model.Category == "Festival" ? "selected" : "")>Festival</option>
+            <option value="StandUp" @(Model.Category == "StandUp" ? "selected" : "")>Stand Up</option>
+        </select>
+    </div>
+    @* Görsel Yükleme *@
+    <div class="form-group">
+        <label for="EventImage">Etkinlik Görseli (Değiştirmek isterseniz seçin)</label>
+        <input type="file" name="EventImage" class="form-control" />
+
+        @* Mevcut görsel varsa göster *@
+        @if (!string.IsNullOrEmpty(Model.ImageUrl))
+        {
+            <div style="margin-top: 10px;">
+                <p><strong>Mevcut Görsel:</strong></p>
+                <img src="@Url.Content(Model.ImageUrl)" width="200" style="border-radius: 5px; border: 1px solid #ccc;" alt="Etkinlik Görseli" />
+            </div>
+        }
+    </div>
+
+    @* Aktiflik Durumu *@
+    <div class="form-group checkbox-group">
+        @Html.CheckBoxFor(model => model.IsActive)
+        @Html.LabelFor(model => model.IsActive, "Aktif (Yayında)")
+    </div>
+
+    @*Butonlar *@
+    <div style="margin-top: 20px;">
+        <button type="submit" class="btn-success">Değişiklikleri Kaydet</button>
+        <a href="@Url.Action("Index")" class="btn-primary" style="background-color: #6c757d; margin-left: 10px;">İptal</a>
+    </div>
+
+}

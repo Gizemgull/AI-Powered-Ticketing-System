@@ -1,0 +1,36 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model IEnumerable<Reservation>
+@{ ViewBag.Title = "Rezervasyonlar"; Layout = "~/Views/Shared/_AdminLayout.cshtml"; }
+
+<div class="admin-header"><h2>Rezervasyonlar</h2></div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Etkinlik</th>
+            <th>Müşteri</th>
+            <th>E-posta</th>
+            <th>Tarih</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Event.Name</td>
+                <td>@item.FullName</td>
+                <td>@item.Email</td>
+                <td>@item.ReservationDate.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>
+                    @using (Html.BeginForm("Delete", "ReservationAdmin", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@item.ReservationID" />
+                        <button class="btn-delete-sm" onclick="return confirm('Silinsin mi?')">Sil</button>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

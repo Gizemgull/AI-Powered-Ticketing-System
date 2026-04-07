@@ -1,0 +1,89 @@
+﻿@using ReservationSystem.Models.Sınıflar
+@model Event
+
+@{
+    ViewBag.Title = "Silme Onayı";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+  
+    .delete-box {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 600px;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+
+    .btn-delete-confirm {
+        background-color: #e74c3c; 
+        color: white !important;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.3s;
+    }
+
+        .btn-delete-confirm:hover {
+            background-color: #c0392b; 
+        }
+
+    .btn-cancel {
+        display: inline-block;
+        background-color: #95a5a6; 
+        color: white !important;
+        padding: 10px 25px;
+        border-radius: 5px;
+        text-decoration: none !important;
+        font-weight: bold;
+        font-size: 14px;
+        margin-left: 10px; 
+        transition: 0.3s;
+    }
+
+        .btn-cancel:hover {
+            background-color: #7f8c8d; 
+        }
+
+    .warning-text {
+        font-size: 16px;
+        margin-bottom: 25px;
+        line-height: 1.5;
+        color: #333;
+    }
+
+    .event-name {
+        color: #e74c3c;
+        font-weight: bold;
+    }
+</style>
+
+<div class="admin-header">
+    <h2>Silme İşlemi</h2>
+</div>
+
+<div class="delete-box">
+    <p class="warning-text">
+        <span class="event-name">@Html.DisplayFor(model => model.Name)</span>
+        adlı etkinliği kalıcı olarak silmek istediğinizden emin misiniz?
+        <br />
+        <small style="color:#777;">(Bu işlem geri alınamaz)</small>
+    </p>
+
+    @using (Html.BeginForm("Delete", "Event", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(model => model.EventID)
+
+        <button type="submit" class="btn-delete-confirm">Evet, Sil</button>
+
+        <a href="@Url.Action("Index")" class="btn-cancel">İptal</a>
+    }
+</div>

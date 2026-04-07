@@ -1,0 +1,61 @@
+﻿@model ReservationSystem.Models.Sınıflar.ContactMessage
+@{
+    ViewBag.Title = "İletişim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="static-page-container">
+    <div class="static-header">
+        <h1>İletişim</h1>
+        <p>Her türlü soru ve öneriniz için bize yazabilirsiniz.</p>
+    </div>
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="alert alert-success" style="text-align:center;">✅ @ViewBag.Success</div>
+    }
+
+    <div class="contact-grid">
+        <div class="contact-info">
+            <div class="info-box" style="margin:0;">
+                <h3>Adres & Telefon</h3>
+                <p>📍 Alsancak, İzmir / Türkiye</p>
+                <p>📞 0232 232 33 22</p>
+                <p>📧 biletbulll@gmail.com</p>
+            </div>
+        </div>
+
+        <div class="contact-form-wrapper">
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label>Ad Soyad</label>
+                    @Html.TextBoxFor(m => m.SenderName, new { @class = "form-control-custom" })
+                    @Html.ValidationMessageFor(m => m.SenderName, "", new { @style = "color:red" })
+                </div>
+
+                <div class="form-group">
+                    <label>E-posta</label>
+                    @Html.TextBoxFor(m => m.SenderEmail, new { @class = "form-control-custom", type = "email" })
+                    @Html.ValidationMessageFor(m => m.SenderEmail, "", new { @style = "color:red" })
+                </div>
+
+                <div class="form-group">
+                    <label>Konu</label>
+                    @Html.TextBoxFor(m => m.Subject, new { @class = "form-control-custom" })
+                    @Html.ValidationMessageFor(m => m.Subject, "", new { @style = "color:red" })
+                </div>
+
+                <div class="form-group">
+                    <label>Mesajınız</label>
+                    @Html.TextAreaFor(m => m.MessageBody, new { @class = "form-control-custom", style = "min-height:100px" })
+                    @Html.ValidationMessageFor(m => m.MessageBody, "", new { @style = "color:red" })
+                </div>
+
+                <button type="submit" class="btn-submit">GÖNDER</button>
+            }
+        </div>
+    </div>
+</div>

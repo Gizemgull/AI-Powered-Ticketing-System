@@ -1,0 +1,68 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sayfa Bulunamadı - 404</title>
+    <style>
+        body {
+            background-color: #f4f4f4;
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .error-container {
+            background: white;
+            padding: 50px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-top: 5px solid #8e44ad; /* Mor Çizgi */
+        }
+
+        h1 {
+            font-size: 100px;
+            margin: 0;
+            color: #8e44ad;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .btn-home {
+            background-color: #8e44ad;
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+            .btn-home:hover {
+                background-color: #732d91;
+            }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>404</h1>
+        <h2>Oops! Sayfa Bulunamadı.</h2>
+        <p>Aradığınız etkinlik süresi dolmuş veya sayfa kaldırılmış olabilir.</p>
+        <a href="/" class="btn-home">🏠 Ana Sayfaya Dön</a>
+    </div>
+</body>
+</html>
